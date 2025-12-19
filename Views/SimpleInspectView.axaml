@@ -17,7 +17,8 @@
             
             <Grid IsVisible="{Binding IsMonitoring}">
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="40">
-                    <TextBlock Text="左の映像を確認して撮影してください" Foreground="#CCCCCC" HorizontalAlignment="Center" FontSize="18"/>
+                    
+                    <TextBlock Text="左の映像を確認して撮影してください" Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" FontSize="20"/>
                     
                     <Button Content="撮影" Command="{Binding CaptureCommand}" Width="220" Height="80" FontSize="28" FontWeight="Bold" 
                             Background="#007ACC" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"

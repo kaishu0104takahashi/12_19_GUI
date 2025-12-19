@@ -76,7 +76,6 @@ public class DatabaseService
         return records;
     }
 
-    // --- 新規追加: レコード保存メソッド ---
     public void InsertInspection(string saveName, string absolutePath, string date, int type)
     {
         try
@@ -100,7 +99,28 @@ public class DatabaseService
         catch (Exception ex)
         {
             Console.WriteLine($"DB Insert Error: {ex.Message}");
-            throw; // エラーを呼び出し元に通知
+            throw; 
+        }
+    }
+
+    // --- 新規追加: 削除機能 ---
+    public void DeleteInspection(int id)
+    {
+        try
+        {
+            using (var connection = new SqliteConnection($"Filename={_databasePath}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM inspection WHERE id = @id;";
+                command.Parameters.AddWithValue("@id", id);
+                command.ExecuteNonQuery();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DB Delete Error: {ex.Message}");
+            throw;
         }
     }
 }
