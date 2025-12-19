@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:GUI_12_19.ViewModels"
+             xmlns:conv="using:GUI_12_19.Converters" 
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="GUI_12_19.Views.GalleryView"
+             x:DataType="vm:GalleryViewModel">
+
+    <Grid Background="#F5F5F5">
+        
+        <Grid IsVisible="{Binding CurrentMode, Converter={x:Static conv:EnumToBoolConverter.IsList}}">
+            <Grid RowDefinitions="Auto, *">
+                <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="#AAAAAA" Padding="10">
+                    <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Stretch">
+                        <TextBlock Text="条件指定" Foreground="Black" VerticalAlignment="Center"/> 
+                        <TextBox Text="{Binding SearchText}" Watermark="名前または日付で検索" Width="180"/>
+                        <CheckBox Content="簡易検査" IsChecked="{Binding ShowSimple}" Foreground="Black"/>
+                        <CheckBox Content="精密検査" IsChecked="{Binding ShowPrecision}" Foreground="Black"/>
+                    </StackPanel>
+                </Border>
+                
+                <ScrollViewer Grid.Row="1" Margin="10" HorizontalScrollBarVisibility="Disabled"> 
+                    <ItemsControl ItemsSource="{Binding DisplayGroups}" HorizontalAlignment="Stretch">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,20" HorizontalAlignment="Stretch"> 
+                                    <TextBlock Text="{Binding DateHeader}" FontSize="16" FontWeight="SemiBold" Foreground="#444444" Margin="0,0,0,5"/>
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal"/> 
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Width="100" Height="100" Background="#DDDDDD" Command="{Binding ItemClickCommand}" Margin="5" Padding="0">
+                                                    <Grid RowDefinitions="*, Auto">
+                                                        <Image Grid.Row="0" Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                                        <TextBlock Grid.Row="1" Text="{Binding Record.SaveName}" Foreground="Black" FontSize="10" HorizontalAlignment="Center" Margin="0,2"/>
+                                                        <TextBlock Grid.Row="1" Text="{Binding TypeLabel}" Foreground="#007ACC" FontSize="8" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,2,0,0"/>
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <Button Grid.Row="1" Content="ホームに戻る" Command="{Binding BackCommand}" Background="#AAAAAA" Foreground="Black" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20"/>
+            </Grid>
+        </Grid>
+
+        <ContentControl Content="{Binding DetailViewModel}" IsVisible="{Binding CurrentMode, Converter={x:Static conv:EnumToBoolConverter.IsDetail}}"/>
+        
+    </Grid>
+</UserControl>

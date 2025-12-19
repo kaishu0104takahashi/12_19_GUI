@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:GUI_12_19.ViewModels"
+        xmlns:conv="clr-namespace:GUI_12_19.Converters" 
+        x:Class="GUI_12_19.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="基板検査システム (12_19_GUI)"
+        WindowState="Maximized">
+    
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
+    
+    <Window.Resources>
+        <conv:BooleanToGridSpanConverter x:Key="BoolToGridSpan"/>
+        <conv:BooleanToGridColumnConverter x:Key="BoolToGridColumn"/>
+        <conv:InvertBoolConverter x:Key="InvertBool"/>
+    </Window.Resources>
+    
+    <Grid x:Name="MainLayoutGrid" ColumnDefinitions="2*, 1*">
+        
+        <Border Grid.Column="0" Margin="10" Background="#333" CornerRadius="5" ClipToBounds="True"
+                IsVisible="{Binding IsGalleryActive, Converter={StaticResource InvertBool}}">
+            <Panel>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                            IsVisible="{Binding CameraImage, Converter={x:Static ObjectConverters.IsNull}}">
+                    <TextBlock Text="Waiting for Camera Input..." Foreground="#888" HorizontalAlignment="Center"/>
+                    <TextBlock Text="UDP Port: 50000" Foreground="#666" FontSize="12" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                </StackPanel>
+                
+                <Image Source="{Binding CameraImage}" Stretch="Uniform" />
+            </Panel>
+        </Border>
+
+        <ContentControl 
+            Content="{Binding CurrentViewModel}"
+            Margin="10"
+            Grid.Column="{Binding IsGalleryActive, Converter={StaticResource BoolToGridColumn}}"
+            Grid.ColumnSpan="{Binding IsGalleryActive, Converter={StaticResource BoolToGridSpan}}"/>
+    </Grid>
+</Window>

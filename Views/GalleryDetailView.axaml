@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:GUI_12_19.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="GUI_12_19.Views.GalleryDetailView"
+             x:DataType="vm:GalleryDetailViewModel">
+
+    <Grid RowDefinitions="Auto, *, Auto" Background="#2B2B2B">
+        <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="#505050" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Command="{Binding CloseDetailCommand}" Content="&lt; 戻る" Background="#4A4A4A" Foreground="White" />
+                <TextBlock Text="{Binding Record.SaveName}" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="3*, 1*" Margin="20">
+            <Grid Grid.Column="0" RowDefinitions="Auto, *" Margin="0,0,20,0">
+                <TextBlock Grid.Row="0" Text="{Binding TypeLabel}" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,10"/>
+                <Grid Grid.Row="1" RowDefinitions="*,*" ColumnDefinitions="*,*" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <Image Grid.Row="0" Grid.Column="0" Source="{Binding OmoteImage}" Stretch="Uniform" Margin="5" />
+                    <Image Grid.Row="0" Grid.Column="1" Source="{Binding UraImage}" Stretch="Uniform" Margin="5" />
+                    <Image Grid.Row="1" Grid.Column="0" Source="{Binding CircuitOmoteImage}" Stretch="Uniform" Margin="5" IsVisible="{Binding IsPrecision}" />
+                    <Image Grid.Row="1" Grid.Column="1" Source="{Binding CircuitUraImage}" Stretch="Uniform" Margin="5" IsVisible="{Binding IsPrecision}" />
+                </Grid>
+            </Grid>
+            
+            <StackPanel Grid.Column="1" Spacing="10" Orientation="Vertical">
+                <TextBlock Text="保存日時:" Foreground="#AAAAAA"/>
+                <TextBlock Text="{Binding FormattedDate}" FontSize="16" Foreground="White"/>
+                <TextBlock Text="検査種類:" Foreground="#AAAAAA" Margin="0,10,0,0"/>
+                <TextBlock Text="{Binding TypeLabel}" FontSize="16" Foreground="White"/>
+                <TextBlock Text="基板情報:" Foreground="#AAAAAA" Margin="0,10,0,0"/>
+                <TextBlock Text="{Binding BoardInfo}" FontSize="16" Foreground="White"/>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="2" Height="30" />
+    </Grid>
+</UserControl>

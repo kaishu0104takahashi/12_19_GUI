@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:GUI_12_19.ViewModels"
+             x:Class="GUI_12_19.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+    <Grid RowDefinitions="Auto, *"> 
+        <TextBlock Grid.Row="0" Text="簡易検査モード (初期画面)" FontSize="18" FontWeight="Bold" Margin="10, 10, 10, 5"/>
+        <StackPanel Grid.Row="1" Spacing="15" Margin="10">
+            <Button Content="撮影" Command="{Binding CaptureCommand}" HorizontalAlignment="Stretch" Height="40"/>
+            <Button Content="ギャラリー" Command="{Binding GalleryCommand}" HorizontalAlignment="Stretch" Height="40"/>
+            <Button Content="精密検査モード" Command="{Binding DetailCommand}" HorizontalAlignment="Stretch" Height="40"/>
+            <Separator Margin="0,10"/>
+            <Button Content="停止" Command="{Binding StopCommand}" Background="#CC0000" Foreground="White" HorizontalAlignment="Stretch" Height="40"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
