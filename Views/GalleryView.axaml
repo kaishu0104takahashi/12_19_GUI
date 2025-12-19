@@ -13,15 +13,15 @@
         <Grid IsVisible="{Binding CurrentMode, Converter={x:Static conv:EnumToBoolConverter.IsList}}">
             <Grid RowDefinitions="Auto, *">
                 
-                <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="#AAAAAA" Padding="10" Background="White">
+                <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="#AAAAAA" Padding="15" Background="White">
                     <Grid ColumnDefinitions="*, Auto">
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding StatusMessage}" Foreground="Black" VerticalAlignment="Center" FontWeight="Bold" FontSize="16"/> 
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StatusMessage}" Foreground="Black" VerticalAlignment="Center" FontWeight="Bold" FontSize="22"/> 
                             
-                            <StackPanel Orientation="Horizontal" Spacing="15" IsVisible="{Binding !IsDeleteMode}">
-                                <TextBox Text="{Binding SearchText}" Watermark="名前または日付で検索" Width="250"/>
-                                <CheckBox Content="簡易検査" IsChecked="{Binding ShowSimple}" Foreground="Black"/>
-                                <CheckBox Content="精密検査" IsChecked="{Binding ShowPrecision}" Foreground="Black"/>
+                            <StackPanel Orientation="Horizontal" Spacing="20" IsVisible="{Binding !IsDeleteMode}" VerticalAlignment="Center">
+                                <TextBox Text="{Binding SearchText}" Watermark="名前または日付で検索" Width="300" FontSize="18" VerticalContentAlignment="Center"/>
+                                <CheckBox Content="簡易検査" IsChecked="{Binding ShowSimple}" Foreground="Black" FontSize="18"/>
+                                <CheckBox Content="精密検査" IsChecked="{Binding ShowPrecision}" Foreground="Black" FontSize="18"/>
                             </StackPanel>
                         </StackPanel>
 
@@ -29,8 +29,9 @@
                                 Content="{Binding DeleteButtonText}" 
                                 Background="{Binding IsDeleteMode, Converter={x:Static ObjectConverters.IsNull}}" 
                                 Classes.deleteMode="{Binding IsDeleteMode}"
-                                Width="100" Height="40" FontSize="16" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                                Width="120" Height="60" FontSize="20" FontWeight="Bold"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                CornerRadius="8">
                             <Button.Styles>
                                 <Style Selector="Button">
                                     <Setter Property="Background" Value="#D32F2F"/>
@@ -51,9 +52,9 @@
                     <ItemsControl ItemsSource="{Binding DisplayGroups}" HorizontalAlignment="Stretch">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="0,0,0,25" HorizontalAlignment="Stretch"> 
-                                    <Border Background="#E0E0E0" Padding="10,5" CornerRadius="4" HorizontalAlignment="Left" Margin="0,0,0,10">
-                                        <TextBlock Text="{Binding DateHeader}" FontSize="18" FontWeight="Bold" Foreground="#333333"/>
+                                <StackPanel Margin="0,0,0,30" HorizontalAlignment="Stretch"> 
+                                    <Border Background="#E0E0E0" Padding="15,8" CornerRadius="4" HorizontalAlignment="Left" Margin="0,0,0,15">
+                                        <TextBlock Text="{Binding DateHeader}" FontSize="22" FontWeight="Bold" Foreground="#333333"/>
                                     </Border>
                                     
                                     <ItemsControl ItemsSource="{Binding Items}">
@@ -64,20 +65,21 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Button Width="180" Height="200" Background="White" Command="{Binding ItemClickCommand}" Margin="8" Padding="0"
+                                                <Button Width="240" Height="270" Background="White" Command="{Binding ItemClickCommand}" Margin="12" Padding="0"
                                                         BorderBrush="#DDDDDD" BorderThickness="1">
                                                     <Grid>
                                                         <Grid RowDefinitions="*, Auto">
-                                                            <Image Grid.Row="0" Source="{Binding Thumbnail}" Stretch="UniformToFill" VerticalAlignment="Center"/>
+                                                            <Image Grid.Row="0" Source="{Binding Thumbnail}" Stretch="UniformToFill" VerticalAlignment="Center"
+                                                                   RenderOptions.BitmapInterpolationMode="MediumQuality"/>
                                                             
                                                             <Border Grid.Row="0" Background="{Binding LabelColor}" 
                                                                     HorizontalAlignment="Left" VerticalAlignment="Top" 
-                                                                    Margin="5" CornerRadius="3" Padding="6,2" Opacity="0.9">
-                                                                <TextBlock Text="{Binding TypeLabel}" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                                                                    Margin="8" CornerRadius="4" Padding="10,5" Opacity="0.9">
+                                                                <TextBlock Text="{Binding TypeLabel}" Foreground="White" FontSize="18" FontWeight="Bold"/>
                                                             </Border>
 
-                                                            <Border Grid.Row="1" Background="White" Padding="5" Height="40">
-                                                                <TextBlock Text="{Binding Record.SaveName}" Foreground="#333333" FontSize="12" 
+                                                            <Border Grid.Row="1" Background="White" Padding="5" Height="60">
+                                                                <TextBlock Text="{Binding Record.SaveName}" Foreground="#333333" FontSize="16" FontWeight="Bold"
                                                                            TextWrapping="Wrap" MaxLines="2" 
                                                                            HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
                                                             </Border>
@@ -86,7 +88,7 @@
                                                         <Border Background="#80FFFFFF" IsVisible="{Binding IsDeleteMode}">
                                                             <CheckBox IsChecked="{Binding IsSelected}" 
                                                                       HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
-                                                                      RenderTransform="scale(2)" />
+                                                                      RenderTransform="scale(2.5)" />
                                                         </Border>
                                                         <Border BorderBrush="Red" BorderThickness="4" IsVisible="{Binding IsSelected}" IsHitTestVisible="False"/>
                                                     </Grid>
@@ -101,7 +103,9 @@
                 </ScrollViewer>
                 
                 <Button Grid.Row="1" Content="ホームに戻る" Command="{Binding BackCommand}" 
-                        Background="#AAAAAA" Foreground="Black" FontSize="16"
+                        Background="#AAAAAA" Foreground="Black" FontSize="20" FontWeight="Bold"
+                        Width="160" Height="60" CornerRadius="8"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                         HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30"/>
             </Grid>
         </Grid>
@@ -109,18 +113,18 @@
         <ContentControl Content="{Binding DetailViewModel}" IsVisible="{Binding CurrentMode, Converter={x:Static conv:EnumToBoolConverter.IsDetail}}"/>
         
         <Grid IsVisible="{Binding ShowDeleteConfirm}" Background="#AA000000">
-            <Border Background="White" Width="400" Height="200" CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20">
-                <StackPanel VerticalAlignment="Center" Spacing="20">
-                    <TextBlock Text="選択した画像を削除してよろしいですか？" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap"/>
-                    <TextBlock Text="※この操作は取り消せません" FontSize="14" Foreground="Red" HorizontalAlignment="Center"/>
+            <Border Background="White" Width="500" Height="250" CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="30">
+                <StackPanel VerticalAlignment="Center" Spacing="30">
+                    <TextBlock Text="選択した画像を削除してよろしいですか？" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Text="※この操作は取り消せません" FontSize="18" Foreground="Red" HorizontalAlignment="Center"/>
                     
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="30" Margin="0,20,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40" Margin="0,20,0,0">
                         <Button Content="はい (削除)" Command="{Binding ExecuteDeleteConfirmCommand}" 
-                                Background="#D32F2F" Foreground="White" Width="120" Height="40" FontSize="16" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                Background="#D32F2F" Foreground="White" Width="150" Height="60" FontSize="20" FontWeight="Bold"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="8"/>
                         <Button Content="いいえ" Command="{Binding CancelDeleteConfirmCommand}" 
-                                Background="#AAAAAA" Foreground="Black" Width="120" Height="40" FontSize="16"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                Background="#AAAAAA" Foreground="Black" Width="150" Height="60" FontSize="20" FontWeight="Bold"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="8"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

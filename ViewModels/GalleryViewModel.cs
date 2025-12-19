@@ -47,7 +47,6 @@ public class GalleryViewModel : ViewModelBase
 
     public ObservableCollection<GalleryDateGroupViewModel> DisplayGroups { get; } = new();
 
-    // --- モード管理 ---
     private GalleryViewMode _currentMode = GalleryViewMode.List;
     public GalleryViewMode CurrentMode
     {
@@ -55,7 +54,6 @@ public class GalleryViewModel : ViewModelBase
         set { _currentMode = value; RaisePropertyChanged(); }
     }
 
-    // 削除モードかどうか
     private bool _isDeleteMode = false;
     public bool IsDeleteMode
     {
@@ -64,15 +62,12 @@ public class GalleryViewModel : ViewModelBase
         { 
             _isDeleteMode = value; 
             RaisePropertyChanged(); 
-            // モード切替時に各アイテムの表示状態を更新
             UpdateItemsDeleteMode();
-            // 右上のボタンテキスト更新
             RaisePropertyChanged(nameof(DeleteButtonText));
             RaisePropertyChanged(nameof(StatusMessage));
         }
     }
 
-    // 削除確認ダイアログの表示
     private bool _showDeleteConfirm = false;
     public bool ShowDeleteConfirm
     {
@@ -83,7 +78,6 @@ public class GalleryViewModel : ViewModelBase
     public string DeleteButtonText => IsDeleteMode ? "実行" : "削除";
     public string StatusMessage => IsDeleteMode ? "削除する画像を選択してください" : "条件指定";
 
-    // 詳細表示用
     private GalleryDetailViewModel? _detailViewModel;
     public GalleryDetailViewModel? DetailViewModel
     {
@@ -91,7 +85,6 @@ public class GalleryViewModel : ViewModelBase
         set { _detailViewModel = value; RaisePropertyChanged(); }
     }
 
-    // フィルタリング用
     private string _searchText = "";
     public string SearchText
     {
@@ -113,31 +106,27 @@ public class GalleryViewModel : ViewModelBase
         set { _showPrecision = value; RaisePropertyChanged(); ApplyFilter(); }
     }
 
-    // --- コマンド ---
-    public ICommand HeaderDeleteButtonCommand { get; } // 右上の削除ボタン
-    public ICommand ExecuteDeleteConfirmCommand { get; } // ダイアログの「はい」
-    public ICommand CancelDeleteConfirmCommand { get; }  // ダイアログの「いいえ」
+    public ICommand HeaderDeleteButtonCommand { get; }
+    public ICommand ExecuteDeleteConfirmCommand { get; }
+    public ICommand CancelDeleteConfirmCommand { get; }
     
     public ICommand ShowDetailCommand { get; }
     public ICommand BackToListCommand { get; }
-    public ICommand BackCommand { get; } // 右下の戻る
+    public ICommand BackCommand { get; }
 
     public GalleryViewModel(MainViewModel main)
     {
         _main = main;
         _dbService = new DatabaseService();
         
-        // 戻るボタン (右下)
         BackCommand = new RelayCommand(() => 
         {
             if (IsDeleteMode)
             {
-                // 削除モード中の場合は中断して通常モードへ
                 QuitDeleteMode();
             }
             else
             {
-                // 通常時はホームへ
                 _main.Navigate(new HomeViewModel(_main));
             }
         });
@@ -145,18 +134,14 @@ public class GalleryViewModel : ViewModelBase
         BackToListCommand = new RelayCommand(ExecuteBackToList);
         ShowDetailCommand = new RelayCommand<InspectionRecord>(ExecuteShowDetail);
 
-        // 右上の削除ボタン
         HeaderDeleteButtonCommand = new RelayCommand(() =>
         {
             if (!IsDeleteMode)
             {
-                // モード開始
                 IsDeleteMode = true;
             }
             else
             {
-                // 実行ボタンとして機能 -> 確認ダイアログへ
-                // 選択されている数を確認
                 int count = CountSelectedItems();
                 if (count > 0)
                 {
@@ -164,20 +149,17 @@ public class GalleryViewModel : ViewModelBase
                 }
                 else
                 {
-                    // 0個選択ならモード終了でいいか、何もしないか。ここでは終了扱いにする
                     QuitDeleteMode();
                 }
             }
         });
 
-        // 削除実行 (はい)
         ExecuteDeleteConfirmCommand = new RelayCommand(PerformDeletion);
 
-        // 削除キャンセル (いいえ)
         CancelDeleteConfirmCommand = new RelayCommand(() =>
         {
             ShowDeleteConfirm = false;
-            QuitDeleteMode(); // メイン画面に戻る
+            QuitDeleteMode();
         });
 
         LoadData();
@@ -190,7 +172,7 @@ public class GalleryViewModel : ViewModelBase
             foreach (var item in group.Items)
             {
                 item.IsDeleteMode = IsDeleteMode;
-                if (!IsDeleteMode) item.IsSelected = false; // モード終了時は選択解除
+                if (!IsDeleteMode) item.IsSelected = false;
             }
         }
     }
@@ -212,7 +194,6 @@ public class GalleryViewModel : ViewModelBase
 
     private void PerformDeletion()
     {
-        // 選択されたアイテムを収集
         var itemsToDelete = new List<GalleryItemViewModel>();
         foreach (var group in DisplayGroups)
         {
@@ -222,19 +203,15 @@ public class GalleryViewModel : ViewModelBase
             }
         }
 
-        // 削除処理
         foreach (var item in itemsToDelete)
         {
-            // 1. DBから削除
             _dbService.DeleteInspection(item.Record.Id);
 
-            // 2. 物理ファイル(ディレクトリ)削除
-            // save_absolute_path はディレクトリパス (/home/shikoku-pc/pic/NAME) を指している前提
             if (Directory.Exists(item.Record.SaveAbsolutePath))
             {
                 try
                 {
-                    Directory.Delete(item.Record.SaveAbsolutePath, true); // trueで中身ごと削除
+                    Directory.Delete(item.Record.SaveAbsolutePath, true);
                 }
                 catch (Exception ex)
                 {
@@ -243,17 +220,15 @@ public class GalleryViewModel : ViewModelBase
             }
         }
 
-        // 完了処理
         ShowDeleteConfirm = false;
         IsDeleteMode = false;
         
-        // データ再読み込み
         LoadData();
     }
 
     private void ExecuteShowDetail(InspectionRecord? record)
     {
-        if (IsDeleteMode) return; // 削除モード中は詳細に飛ばない
+        if (IsDeleteMode) return;
 
         if (record != null)
         {
@@ -277,7 +252,6 @@ public class GalleryViewModel : ViewModelBase
 
     private void ApplyFilter()
     {
-        // 現在の選択状態やモードを一度リセットする
         DisplayGroups.Clear();
         ExecuteBackToList();
         IsDeleteMode = false; 
@@ -308,7 +282,6 @@ public class GalleryItemViewModel : ViewModelBase
     public string TypeLabel => Record.Type == 0 ? "簡易" : "精密";
     public string LabelColor => Record.Type == 0 ? "#007ACC" : "#E06C00";
     
-    // --- 削除モード用 ---
     private bool _isDeleteMode = false;
     public bool IsDeleteMode
     {
@@ -329,7 +302,6 @@ public class GalleryItemViewModel : ViewModelBase
     {
         Record = record;
         
-        // クリック時の挙動: 削除モードなら選択トグル、通常なら詳細表示
         ItemClickCommand = new RelayCommand(() => 
         {
             if (parentVM.IsDeleteMode)
@@ -346,7 +318,13 @@ public class GalleryItemViewModel : ViewModelBase
         {
             if (File.Exists(record.ThumbnailPath))
             {
-                Thumbnail = new Bitmap(record.ThumbnailPath);
+                // 【修正】画像をフルサイズではなく、表示サイズに合わせて縮小して読み込む
+                // これによりメモリ使用量が激減し、スクロールが軽くなります
+                using (var stream = File.OpenRead(record.ThumbnailPath))
+                {
+                    // 表示幅240pxに対して、少し余裕を持って320pxでデコード
+                    Thumbnail = Bitmap.DecodeToWidth(stream, 320);
+                }
             }
         }
         catch (Exception) { Thumbnail = null; }
@@ -393,6 +371,8 @@ public class GalleryDetailViewModel : ViewModelBase
             uraPath = record.SimpleUraPath;
         }
 
+        // 詳細画面は大きく表示するため、フルサイズ読み込みでもOKだが
+        // あまりに巨大ならここも制限してもよい。今回はそのまま。
         Bitmap? LoadImage(string path)
         {
             if (string.IsNullOrEmpty(path)) return null;
