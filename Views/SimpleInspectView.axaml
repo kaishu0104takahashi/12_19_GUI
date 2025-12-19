@@ -46,40 +46,6 @@
                 </StackPanel>
             </Grid>
 
-            <Grid IsVisible="{Binding IsNamingPrompt}">
-                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="30">
-                    
-                    <Border Background="White" Padding="30,15" CornerRadius="8">
-                        <TextBlock Text="名前を付けて保存しますか？" Foreground="Black" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    </Border>
-                    
-                    <StackPanel Orientation="Horizontal" Spacing="30">
-                        <Button Content="はい" Command="{Binding YesNameCommand}" Width="160" Height="60" 
-                                Background="#007ACC" Foreground="White" FontSize="22" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="8"/>
-                                
-                        <Button Content="いいえ (日時で保存)" Command="{Binding NoNameCommand}" Width="240" Height="60" 
-                                Background="#555555" Foreground="White" FontSize="22" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="8"/>
-                    </StackPanel>
-                </StackPanel>
             </Grid>
-
-            <Grid IsVisible="{Binding IsNamingInput}" Background="#AA000000">
-                <Border Background="White" CornerRadius="10" Padding="30" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
-                    <StackPanel Orientation="Vertical" Spacing="20">
-                        <TextBlock Text="保存名を入力" Foreground="Black" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
-                        <TextBlock Text="※半角英数字のみ" Foreground="#666666" FontSize="14" HorizontalAlignment="Center"/>
-                        
-                        <TextBox Text="{Binding InputName}" Watermark="例: Board001" FontSize="24" Padding="10" Margin="0,10"/>
-                        
-                        <Button Content="保存" Command="{Binding SaveWithNameCommand}" Width="150" Height="60" 
-                                Background="#1E8E3E" Foreground="White" FontSize="24" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Right" CornerRadius="8"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-        </Grid>
     </Grid>
 </UserControl>

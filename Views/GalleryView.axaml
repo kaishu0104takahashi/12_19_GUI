@@ -14,37 +14,70 @@
             <Grid RowDefinitions="Auto, *">
                 
                 <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="#AAAAAA" Padding="15" Background="White">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding StatusMessage}" Foreground="Black" VerticalAlignment="Center" FontWeight="Bold" FontSize="22"/> 
+                    <Grid ColumnDefinitions="Auto, *, Auto">
+                        
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                            <Button Command="{Binding BackCommand}" 
+                                    Content="＜ 戻る" 
+                                    Width="110" Height="60" FontSize="20" FontWeight="Bold"
+                                    Background="#AAAAAA" Foreground="Black"
+                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                    CornerRadius="8"/>
                             
-                            <StackPanel Orientation="Horizontal" Spacing="20" IsVisible="{Binding !IsDeleteMode}" VerticalAlignment="Center">
-                                <TextBox Text="{Binding SearchText}" Watermark="名前または日付で検索" Width="300" FontSize="18" VerticalContentAlignment="Center"/>
-                                <CheckBox Content="簡易検査" IsChecked="{Binding ShowSimple}" Foreground="Black" FontSize="18"/>
-                                <CheckBox Content="精密検査" IsChecked="{Binding ShowPrecision}" Foreground="Black" FontSize="18"/>
-                            </StackPanel>
+                            <TextBlock Text="{Binding StatusMessage}" Foreground="Black" VerticalAlignment="Center" FontWeight="Bold" FontSize="22"/> 
                         </StackPanel>
 
-                        <Button Grid.Column="1" Command="{Binding HeaderDeleteButtonCommand}" 
-                                Content="{Binding DeleteButtonText}" 
-                                Background="{Binding IsDeleteMode, Converter={x:Static ObjectConverters.IsNull}}" 
-                                Classes.deleteMode="{Binding IsDeleteMode}"
-                                Width="120" Height="60" FontSize="20" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                CornerRadius="8">
-                            <Button.Styles>
-                                <Style Selector="Button">
-                                    <Setter Property="Background" Value="#D32F2F"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                </Style>
-                                <Style Selector="Button.deleteMode">
-                                    <Setter Property="Background" Value="#B71C1C"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                    <Setter Property="BorderBrush" Value="Red"/>
-                                    <Setter Property="BorderThickness" Value="2"/>
-                                </Style>
-                            </Button.Styles>
-                        </Button>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="30" VerticalAlignment="Center">
+                            
+                            <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                                <StackPanel.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="!IsDeleteMode"/>
+                                        <Binding Path="!IsRenameMode"/>
+                                    </MultiBinding>
+                                </StackPanel.IsVisible>
+                                
+                                <TextBox Text="{Binding SearchText}" Watermark="検索" Width="200" FontSize="18" VerticalContentAlignment="Center"/>
+                                <CheckBox Content="簡易" IsChecked="{Binding ShowSimple}" Foreground="Black" FontSize="18"/>
+                                <CheckBox Content="精密" IsChecked="{Binding ShowPrecision}" Foreground="Black" FontSize="18"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <Button Command="{Binding HeaderRenameButtonCommand}" 
+                                        Content="{Binding RenameButtonText}" 
+                                        Width="140" Height="60" FontSize="18" FontWeight="Bold"
+                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                        CornerRadius="8">
+                                    <Button.Styles>
+                                        <Style Selector="Button">
+                                            <Setter Property="Background" Value="#007ACC"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Style>
+                                        <Style Selector="Button[Content='キャンセル']">
+                                            <Setter Property="Background" Value="#555555"/>
+                                        </Style>
+                                    </Button.Styles>
+                                </Button>
+
+                                <Button Command="{Binding HeaderDeleteButtonCommand}" 
+                                        Content="{Binding DeleteButtonText}" 
+                                        Width="110" Height="60" FontSize="18" FontWeight="Bold"
+                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                        CornerRadius="8">
+                                    <Button.Styles>
+                                        <Style Selector="Button">
+                                            <Setter Property="Background" Value="#D32F2F"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Style>
+                                        <Style Selector="Button[Content='実行']">
+                                            <Setter Property="Background" Value="#B71C1C"/>
+                                            <Setter Property="BorderBrush" Value="Red"/>
+                                            <Setter Property="BorderThickness" Value="2"/>
+                                        </Style>
+                                    </Button.Styles>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
                     </Grid>
                 </Border>
                 
@@ -91,6 +124,12 @@
                                                                       RenderTransform="scale(2.5)" />
                                                         </Border>
                                                         <Border BorderBrush="Red" BorderThickness="4" IsVisible="{Binding IsSelected}" IsHitTestVisible="False"/>
+                                                        
+                                                        <Border Background="#30007ACC" IsVisible="{Binding IsRenameMode}" IsHitTestVisible="False">
+                                                            <TextBlock Text="選択して変更" Foreground="White" FontWeight="Bold" 
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"
+                                                                       Background="#80000000" Padding="10"/>
+                                                        </Border>
                                                     </Grid>
                                                 </Button>
                                             </DataTemplate>
@@ -102,29 +141,44 @@
                     </ItemsControl>
                 </ScrollViewer>
                 
-                <Button Grid.Row="1" Content="ホームに戻る" Command="{Binding BackCommand}" 
-                        Background="#AAAAAA" Foreground="Black" FontSize="20" FontWeight="Bold"
-                        Width="160" Height="60" CornerRadius="8"
-                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                        HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30"/>
             </Grid>
         </Grid>
 
         <ContentControl Content="{Binding DetailViewModel}" IsVisible="{Binding CurrentMode, Converter={x:Static conv:EnumToBoolConverter.IsDetail}}"/>
         
         <Grid IsVisible="{Binding ShowDeleteConfirm}" Background="#AA000000">
-            <Border Background="White" Width="500" Height="250" CornerRadius="10" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="30">
-                <StackPanel VerticalAlignment="Center" Spacing="30">
-                    <TextBlock Text="選択した画像を削除してよろしいですか？" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap"/>
-                    <TextBlock Text="※この操作は取り消せません" FontSize="18" Foreground="Red" HorizontalAlignment="Center"/>
+            <Border Background="White" Width="700" Height="300" CornerRadius="16" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="50">
+                <StackPanel VerticalAlignment="Center" Spacing="40">
+                    <TextBlock Text="選択した画像を削除してよろしいですか？" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="※この操作は取り消せません" FontSize="20" Foreground="#D32F2F" HorizontalAlignment="Center"/>
                     
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40" Margin="0,20,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="60" Margin="0,20,0,0">
                         <Button Content="はい (削除)" Command="{Binding ExecuteDeleteConfirmCommand}" 
-                                Background="#D32F2F" Foreground="White" Width="150" Height="60" FontSize="20" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="8"/>
+                                Background="#D32F2F" Foreground="White" Width="180" Height="70" FontSize="22" FontWeight="Bold"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="10"/>
                         <Button Content="いいえ" Command="{Binding CancelDeleteConfirmCommand}" 
-                                Background="#AAAAAA" Foreground="Black" Width="150" Height="60" FontSize="20" FontWeight="Bold"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="8"/>
+                                Background="#AAAAAA" Foreground="Black" Width="180" Height="70" FontSize="22" FontWeight="Bold"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="10"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid IsVisible="{Binding ShowRenameDialog}" Background="#AA000000">
+            <Border Background="White" Width="700" Height="380" CornerRadius="16" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="50">
+                <StackPanel VerticalAlignment="Center" Spacing="35">
+                    <TextBlock Text="新しい名前を入力してください" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="※フォルダ名とファイル名が変更されます" FontSize="20" Foreground="#666666" HorizontalAlignment="Center"/>
+                    
+                    <TextBox Text="{Binding RenameInput}" Watermark="新しい名前 (半角英数)" FontSize="28" Padding="15" Margin="30,0"/>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="60" Margin="0,25,0,0">
+                        <Button Content="変更する" Command="{Binding ExecuteRenameCommand}" 
+                                Background="#007ACC" Foreground="White" Width="180" Height="70" FontSize="22" FontWeight="Bold"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="10"/>
+                        <Button Content="キャンセル" Command="{Binding CancelRenameCommand}" 
+                                Background="#AAAAAA" Foreground="Black" Width="180" Height="70" FontSize="22" FontWeight="Bold"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" CornerRadius="10"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Media.Imaging;
@@ -13,7 +12,7 @@ public class SimpleInspectViewModel : ViewModelBase
     private readonly MainViewModel _main;
     private readonly DatabaseService _dbService;
 
-    // --- UIの状態管理用プロパティ ---
+    // --- UIの状態管理 ---
     
     private string _statusMessage = "撮影ボタンを押してください";
     public string StatusMessage
@@ -22,7 +21,6 @@ public class SimpleInspectViewModel : ViewModelBase
         set { _statusMessage = value; RaisePropertyChanged(); }
     }
 
-    // 画面切り替えフラグ
     private bool _isMonitoring = true; // 撮影待機中
     public bool IsMonitoring
     {
@@ -37,45 +35,13 @@ public class SimpleInspectViewModel : ViewModelBase
         set { _isReviewing = value; RaisePropertyChanged(); }
     }
 
-    private bool _isNamingPrompt = false; // 名前付け確認中
-    public bool IsNamingPrompt
-    {
-        get => _isNamingPrompt;
-        set { _isNamingPrompt = value; RaisePropertyChanged(); }
-    }
-    
-    private bool _isNamingInput = false; // 名前入力中
-    public bool IsNamingInput
-    {
-        get => _isNamingInput;
-        set { _isNamingInput = value; RaisePropertyChanged(); }
-    }
-
-    // 撮影した画像のキャッシュ (保存用)
+    // 撮影した画像のキャッシュ
     public Bitmap? CapturedImage { get; set; }
-
-    // 名前入力フィールド
-    private string _inputName = "";
-    public string InputName
-    {
-        get => _inputName;
-        set 
-        {
-            if (Regex.IsMatch(value, "^[a-zA-Z0-9]*$"))
-            {
-                _inputName = value;
-                RaisePropertyChanged();
-            }
-        }
-    }
 
     // --- コマンド ---
     public ICommand CaptureCommand { get; }
     public ICommand RetakeCommand { get; }
     public ICommand ConfirmCaptureCommand { get; }
-    public ICommand YesNameCommand { get; }
-    public ICommand NoNameCommand { get; }
-    public ICommand SaveWithNameCommand { get; }
     public ICommand BackCommand { get; }
 
     public SimpleInspectViewModel(MainViewModel main)
@@ -85,7 +51,6 @@ public class SimpleInspectViewModel : ViewModelBase
 
         BackCommand = new RelayCommand(() => 
         {
-            // 戻る際は必ずカメラを再開
             _main.IsCameraPaused = false;
             _main.Navigate(new HomeViewModel(_main));
         });
@@ -95,13 +60,9 @@ public class SimpleInspectViewModel : ViewModelBase
         {
             if (_main.CameraImage != null)
             {
-                // 1. 現在の画像を保存用に確保
                 CapturedImage = _main.CameraImage;
-                
-                // 2. MainViewModelの更新を停止（これで左画面がフリーズする）
                 _main.IsCameraPaused = true;
                 
-                // 3. UI遷移
                 IsMonitoring = false;
                 IsReviewing = true;
                 StatusMessage = "この画像でよろしいですか？";
@@ -112,41 +73,19 @@ public class SimpleInspectViewModel : ViewModelBase
         RetakeCommand = new RelayCommand(() =>
         {
             CapturedImage = null;
-            // カメラ再開
             _main.IsCameraPaused = false;
             
-            // UI遷移
             IsReviewing = false;
             IsMonitoring = true;
             StatusMessage = "撮影ボタンを押してください";
         });
 
-        // 画像OK (はい)
+        // 画像OK (はい) -> 即座に日時で保存
         ConfirmCaptureCommand = new RelayCommand(() =>
         {
-            IsReviewing = false;
-            IsNamingPrompt = true;
-            StatusMessage = "名前を付けて保存しますか？";
-        });
-
-        YesNameCommand = new RelayCommand(() =>
-        {
-            IsNamingPrompt = false;
-            IsNamingInput = true;
-            InputName = "";
-            StatusMessage = "保存名を入力してください (半角英数のみ)";
-        });
-
-        NoNameCommand = new RelayCommand(() =>
-        {
+            // YYYY-MM-DD-hh-mm-ss 形式
             string dateStr = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
             SaveProcess(dateStr);
-        });
-
-        SaveWithNameCommand = new RelayCommand(() =>
-        {
-            if (string.IsNullOrEmpty(InputName)) return;
-            SaveProcess(InputName);
         });
     }
 
@@ -162,13 +101,15 @@ public class SimpleInspectViewModel : ViewModelBase
                 Directory.CreateDirectory(saveDir);
             }
 
+            // ファイル名もディレクトリ名に合わせる
             string fileName = $"{saveName}_omote.jpg";
             string fullPath = Path.Combine(saveDir, fileName);
 
             CapturedImage?.Save(fullPath);
 
-            string dateStr = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
-            _dbService.InsertInspection(saveName, saveDir, dateStr, 0);
+            // DB保存
+            // save_absolute_path はディレクトリパスを保存するのが通例になっているためそれに従う
+            _dbService.InsertInspection(saveName, saveDir, saveName, 0); // dateもsaveNameと同じ形式でよい
 
             // 保存完了後、カメラを再開してホームへ
             _main.IsCameraPaused = false;

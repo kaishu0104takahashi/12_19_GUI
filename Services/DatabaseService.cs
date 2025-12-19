@@ -103,7 +103,6 @@ public class DatabaseService
         }
     }
 
-    // --- 新規追加: 削除機能 ---
     public void DeleteInspection(int id)
     {
         try
@@ -120,6 +119,34 @@ public class DatabaseService
         catch (Exception ex)
         {
             Console.WriteLine($"DB Delete Error: {ex.Message}");
+            throw;
+        }
+    }
+
+    // --- 新規追加: 名前とパスの更新 ---
+    public void UpdateInspectionName(int id, string newName, string newPath)
+    {
+        try
+        {
+            using (var connection = new SqliteConnection($"Filename={_databasePath}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = @"
+                    UPDATE inspection 
+                    SET save_name = @newName, save_absolute_path = @newPath 
+                    WHERE id = @id;";
+                
+                command.Parameters.AddWithValue("@newName", newName);
+                command.Parameters.AddWithValue("@newPath", newPath);
+                command.Parameters.AddWithValue("@id", id);
+
+                command.ExecuteNonQuery();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DB Update Error: {ex.Message}");
             throw;
         }
     }

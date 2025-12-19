@@ -8,6 +8,7 @@ using GUI_12_19.Models;
 using GUI_12_19.Services;
 using System.Globalization;
 using System.IO; 
+using System.Text.RegularExpressions;
 
 namespace GUI_12_19.ViewModels;
 
@@ -54,6 +55,7 @@ public class GalleryViewModel : ViewModelBase
         set { _currentMode = value; RaisePropertyChanged(); }
     }
 
+    // --- 削除モード ---
     private bool _isDeleteMode = false;
     public bool IsDeleteMode
     {
@@ -62,12 +64,57 @@ public class GalleryViewModel : ViewModelBase
         { 
             _isDeleteMode = value; 
             RaisePropertyChanged(); 
-            UpdateItemsDeleteMode();
+            // 名前変更モードは解除
+            if(value) IsRenameMode = false;
+            UpdateItemsMode();
             RaisePropertyChanged(nameof(DeleteButtonText));
             RaisePropertyChanged(nameof(StatusMessage));
         }
     }
+    
+    // --- 名前変更モード ---
+    private bool _isRenameMode = false;
+    public bool IsRenameMode
+    {
+        get => _isRenameMode;
+        set
+        {
+            _isRenameMode = value;
+            RaisePropertyChanged();
+            // 削除モードは解除
+            if(value) IsDeleteMode = false;
+            UpdateItemsMode();
+            RaisePropertyChanged(nameof(RenameButtonText));
+            RaisePropertyChanged(nameof(StatusMessage));
+        }
+    }
 
+    // --- 名前変更ダイアログ ---
+    private bool _showRenameDialog = false;
+    public bool ShowRenameDialog
+    {
+        get => _showRenameDialog;
+        set { _showRenameDialog = value; RaisePropertyChanged(); }
+    }
+    
+    private string _renameInput = "";
+    public string RenameInput
+    {
+        get => _renameInput;
+        set 
+        {
+            // 半角英数字のみ許可
+            if (Regex.IsMatch(value, "^[a-zA-Z0-9_-]*$"))
+            {
+                _renameInput = value;
+                RaisePropertyChanged();
+            }
+        }
+    }
+    
+    private GalleryItemViewModel? _targetItemForRename;
+
+    // --- 削除確認ダイアログ ---
     private bool _showDeleteConfirm = false;
     public bool ShowDeleteConfirm
     {
@@ -76,7 +123,16 @@ public class GalleryViewModel : ViewModelBase
     }
 
     public string DeleteButtonText => IsDeleteMode ? "実行" : "削除";
-    public string StatusMessage => IsDeleteMode ? "削除する画像を選択してください" : "条件指定";
+    public string RenameButtonText => IsRenameMode ? "キャンセル" : "名前変更";
+    public string StatusMessage
+    {
+        get
+        {
+            if (IsDeleteMode) return "削除する画像を選択してください";
+            if (IsRenameMode) return "名前を変更する画像を選択してください";
+            return "条件指定";
+        }
+    }
 
     private GalleryDetailViewModel? _detailViewModel;
     public GalleryDetailViewModel? DetailViewModel
@@ -107,8 +163,13 @@ public class GalleryViewModel : ViewModelBase
     }
 
     public ICommand HeaderDeleteButtonCommand { get; }
+    public ICommand HeaderRenameButtonCommand { get; }
+    
     public ICommand ExecuteDeleteConfirmCommand { get; }
     public ICommand CancelDeleteConfirmCommand { get; }
+
+    public ICommand ExecuteRenameCommand { get; }
+    public ICommand CancelRenameCommand { get; }
     
     public ICommand ShowDetailCommand { get; }
     public ICommand BackToListCommand { get; }
@@ -121,9 +182,9 @@ public class GalleryViewModel : ViewModelBase
         
         BackCommand = new RelayCommand(() => 
         {
-            if (IsDeleteMode)
+            if (IsDeleteMode || IsRenameMode)
             {
-                QuitDeleteMode();
+                QuitModes();
             }
             else
             {
@@ -134,6 +195,7 @@ public class GalleryViewModel : ViewModelBase
         BackToListCommand = new RelayCommand(ExecuteBackToList);
         ShowDetailCommand = new RelayCommand<InspectionRecord>(ExecuteShowDetail);
 
+        // 削除ボタン
         HeaderDeleteButtonCommand = new RelayCommand(() =>
         {
             if (!IsDeleteMode)
@@ -142,36 +204,47 @@ public class GalleryViewModel : ViewModelBase
             }
             else
             {
-                int count = CountSelectedItems();
-                if (count > 0)
-                {
-                    ShowDeleteConfirm = true;
-                }
-                else
-                {
-                    QuitDeleteMode();
-                }
+                if (CountSelectedItems() > 0) ShowDeleteConfirm = true;
+                else QuitModes();
             }
         });
-
-        ExecuteDeleteConfirmCommand = new RelayCommand(PerformDeletion);
-
-        CancelDeleteConfirmCommand = new RelayCommand(() =>
+        
+        // 名前変更ボタン
+        HeaderRenameButtonCommand = new RelayCommand(() =>
         {
-            ShowDeleteConfirm = false;
-            QuitDeleteMode();
+            IsRenameMode = !IsRenameMode;
         });
+
+        // 削除実行
+        ExecuteDeleteConfirmCommand = new RelayCommand(PerformDeletion);
+        CancelDeleteConfirmCommand = new RelayCommand(() => { ShowDeleteConfirm = false; QuitModes(); });
+
+        // 名前変更実行
+        ExecuteRenameCommand = new RelayCommand(PerformRename);
+        CancelRenameCommand = new RelayCommand(() => { ShowRenameDialog = false; _targetItemForRename = null; });
 
         LoadData();
     }
+    
+    // アイテムクリック時に呼ばれる（Renameモードならダイアログを開く）
+    public void OnItemClicked(GalleryItemViewModel item)
+    {
+        if (IsRenameMode)
+        {
+            _targetItemForRename = item;
+            RenameInput = item.Record.SaveName;
+            ShowRenameDialog = true;
+        }
+    }
 
-    private void UpdateItemsDeleteMode()
+    private void UpdateItemsMode()
     {
         foreach (var group in DisplayGroups)
         {
             foreach (var item in group.Items)
             {
                 item.IsDeleteMode = IsDeleteMode;
+                item.IsRenameMode = IsRenameMode;
                 if (!IsDeleteMode) item.IsSelected = false;
             }
         }
@@ -186,10 +259,12 @@ public class GalleryViewModel : ViewModelBase
         return count;
     }
 
-    private void QuitDeleteMode()
+    private void QuitModes()
     {
         ShowDeleteConfirm = false;
+        ShowRenameDialog = false;
         IsDeleteMode = false;
+        IsRenameMode = false;
     }
 
     private void PerformDeletion()
@@ -206,29 +281,78 @@ public class GalleryViewModel : ViewModelBase
         foreach (var item in itemsToDelete)
         {
             _dbService.DeleteInspection(item.Record.Id);
-
             if (Directory.Exists(item.Record.SaveAbsolutePath))
             {
-                try
-                {
-                    Directory.Delete(item.Record.SaveAbsolutePath, true);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"File Delete Error: {ex.Message}");
-                }
+                try { Directory.Delete(item.Record.SaveAbsolutePath, true); }
+                catch (Exception ex) { Console.WriteLine($"File Delete Error: {ex.Message}"); }
             }
         }
 
-        ShowDeleteConfirm = false;
-        IsDeleteMode = false;
-        
+        QuitModes();
         LoadData();
+    }
+
+    private void PerformRename()
+    {
+        if (_targetItemForRename == null || string.IsNullOrWhiteSpace(RenameInput)) return;
+
+        string oldName = _targetItemForRename.Record.SaveName;
+        string newName = RenameInput;
+        string oldPath = _targetItemForRename.Record.SaveAbsolutePath;
+        
+        // パスの構築 (/home/shikoku-pc/pic/NewName)
+        string parentDir = Path.GetDirectoryName(oldPath) ?? "/home/shikoku-pc/pic";
+        string newPath = Path.Combine(parentDir, newName);
+
+        if (oldName == newName)
+        {
+            ShowRenameDialog = false;
+            return;
+        }
+
+        try
+        {
+            if (Directory.Exists(newPath))
+            {
+                // 重複エラーなどのハンドリングが必要だが、簡易的に今回は何もしないかエラーログ
+                Console.WriteLine("既に同名のフォルダが存在します");
+                return;
+            }
+
+            // 1. ディレクトリ名の変更
+            Directory.Move(oldPath, newPath);
+
+            // 2. フォルダ内のファイル名の変更 (○○_circuit_omote.jpg など)
+            string[] files = Directory.GetFiles(newPath);
+            foreach (var file in files)
+            {
+                string fileName = Path.GetFileName(file);
+                if (fileName.Contains(oldName))
+                {
+                    string newFileName = fileName.Replace(oldName, newName);
+                    string newFilePath = Path.Combine(newPath, newFileName);
+                    File.Move(file, newFilePath);
+                }
+            }
+
+            // 3. データベース更新
+            _dbService.UpdateInspectionName(_targetItemForRename.Record.Id, newName, newPath);
+            
+            // 4. リフレッシュ
+            ShowRenameDialog = false;
+            IsRenameMode = false; // 変更したら通常モードへ戻る
+            LoadData();
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Rename Error: {ex.Message}");
+        }
     }
 
     private void ExecuteShowDetail(InspectionRecord? record)
     {
-        if (IsDeleteMode) return;
+        if (IsDeleteMode || IsRenameMode) return;
 
         if (record != null)
         {
@@ -255,6 +379,7 @@ public class GalleryViewModel : ViewModelBase
         DisplayGroups.Clear();
         ExecuteBackToList();
         IsDeleteMode = false; 
+        IsRenameMode = false;
 
         var filtered = _allRecords.Where(r =>
         {
@@ -288,6 +413,13 @@ public class GalleryItemViewModel : ViewModelBase
         get => _isDeleteMode;
         set { _isDeleteMode = value; RaisePropertyChanged(); }
     }
+    
+    private bool _isRenameMode = false;
+    public bool IsRenameMode
+    {
+        get => _isRenameMode;
+        set { _isRenameMode = value; RaisePropertyChanged(); }
+    }
 
     private bool _isSelected = false;
     public bool IsSelected
@@ -308,6 +440,11 @@ public class GalleryItemViewModel : ViewModelBase
             {
                 IsSelected = !IsSelected;
             }
+            else if (parentVM.IsRenameMode)
+            {
+                // 名前変更モードなら親VMのメソッドを呼んでダイアログを開く
+                parentVM.OnItemClicked(this);
+            }
             else
             {
                 parentVM.ShowDetailCommand.Execute(record);
@@ -318,11 +455,8 @@ public class GalleryItemViewModel : ViewModelBase
         {
             if (File.Exists(record.ThumbnailPath))
             {
-                // 【修正】画像をフルサイズではなく、表示サイズに合わせて縮小して読み込む
-                // これによりメモリ使用量が激減し、スクロールが軽くなります
                 using (var stream = File.OpenRead(record.ThumbnailPath))
                 {
-                    // 表示幅240pxに対して、少し余裕を持って320pxでデコード
                     Thumbnail = Bitmap.DecodeToWidth(stream, 320);
                 }
             }
@@ -358,21 +492,19 @@ public class GalleryDetailViewModel : ViewModelBase
         string circuitOmotePath = "";
         string circuitUraPath = "";
 
-        if (record.Type == 1) // 精密
+        if (record.Type == 1) 
         {
             omotePath = record.PrecisionPcbOmotePath;
             uraPath = record.PrecisionPcbUraPath;
             circuitOmotePath = record.PrecisionCircuitOmotePath;
             circuitUraPath = record.PrecisionCircuitUraPath;
         }
-        else // 簡易
+        else 
         {
             omotePath = record.SimpleOmotePath;
             uraPath = record.SimpleUraPath;
         }
 
-        // 詳細画面は大きく表示するため、フルサイズ読み込みでもOKだが
-        // あまりに巨大ならここも制限してもよい。今回はそのまま。
         Bitmap? LoadImage(string path)
         {
             if (string.IsNullOrEmpty(path)) return null;
